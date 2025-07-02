@@ -6,9 +6,17 @@ rpc_url_mainnet: "https://api.mainnet-beta.solana.com"
 #rpc_url_testnet: "https://api.testnet.solana.com"  # Optional
 # rpc_url_devnet: "https://api.devnet.solana.com"  # Optional
 
-# Validator accounts for mainnet (at least one validator configuration required)
-mainnet_vote_account: "YOUR_MAINNET_VOTE_ACCOUNT_PUBKEY"
-mainnet_identity_account: "YOUR_MAINNET_IDENTITY_ACCOUNT_PUBKEY"
+# NEW: Multiple validators per network (recommended format)
+mainnet_validators:
+  - vote_account: "YOUR_MAINNET_VOTE_ACCOUNT_PUBKEY_1"
+    identity_account: "YOUR_MAINNET_IDENTITY_ACCOUNT_PUBKEY_1"
+  - vote_account: "YOUR_MAINNET_VOTE_ACCOUNT_PUBKEY_2"
+    identity_account: "YOUR_MAINNET_IDENTITY_ACCOUNT_PUBKEY_2"
+  # Add more validators as needed...
+
+# LEGACY: Single validator format (still supported for backward compatibility)
+# mainnet_vote_account: "YOUR_MAINNET_VOTE_ACCOUNT_PUBKEY"
+# mainnet_identity_account: "YOUR_MAINNET_IDENTITY_ACCOUNT_PUBKEY"
 
 # Optional: Additional validators for other networks
 testnet_vote_account: "YOUR_TESTNET_VOTE_ACCOUNT_PUBKEY"
@@ -17,3 +25,23 @@ testnet_identity_account: "YOUR_TESTNET_IDENTITY_ACCOUNT_PUBKEY"
 # Optional: Additional validators for other networks
 devnet_vote_account: "YOUR_DEVNET_VOTE_ACCOUNT_PUBKEY"
 devnet_identity_account: "YOUR_DEVNET_IDENTITY_ACCOUNT_PUBKEY"
+
+# Optional: Multiple validators for other networks
+# testnet_validators:
+#   - vote_account: "YOUR_TESTNET_VOTE_ACCOUNT_PUBKEY_1"
+#     identity_account: "YOUR_TESTNET_IDENTITY_ACCOUNT_PUBKEY_1"
+#   - vote_account: "YOUR_TESTNET_VOTE_ACCOUNT_PUBKEY_2"
+#     identity_account: "YOUR_TESTNET_IDENTITY_ACCOUNT_PUBKEY_2"
+
+# Optional: Multiple validators for other networks
+# devnet_validators:
+#   - vote_account: "YOUR_DEVNET_VOTE_ACCOUNT_PUBKEY_1"
+#     identity_account: "YOUR_DEVNET_IDENTITY_ACCOUNT_PUBKEY_1"
+#   - vote_account: "YOUR_DEVNET_VOTE_ACCOUNT_PUBKEY_2"
+#     identity_account: "YOUR_DEVNET_IDENTITY_ACCOUNT_PUBKEY_2"
+
+# LEGACY: Single validator format for other networks (still supported)
+# testnet_vote_account: "YOUR_TESTNET_VOTE_ACCOUNT_PUBKEY"
+# testnet_identity_account: "YOUR_TESTNET_IDENTITY_ACCOUNT_PUBKEY"
+# devnet_vote_account: "YOUR_DEVNET_VOTE_ACCOUNT_PUBKEY"
+# devnet_identity_account: "YOUR_DEVNET_IDENTITY_ACCOUNT_PUBKEY"
