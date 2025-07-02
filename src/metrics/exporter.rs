@@ -16,23 +16,26 @@ use tokio::sync::Mutex;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct MethodLabels {
-    // pub epoch: u64,
+    pub network: String,
     pub vote_account: String,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct StakeLabels {
+    pub network: String,
     pub stake_type: String,
     pub vote_account: String,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
 pub struct BlockLabels {
+    pub network: String,
     pub block_type: String,
     pub vote_account: String,
 }
 
 pub struct Metrics {
+    network: String,
     rpc_url: String,
     identity_account: String,
     vote_account: String,
@@ -52,8 +55,9 @@ pub struct Metrics {
 }
 
 impl Metrics {
-    pub fn new(rpc_url: String, identity_account: String, vote_account: String) -> Metrics {
+    pub fn new(network: String, rpc_url: String, identity_account: String, vote_account: String) -> Metrics {
         Metrics {
+            network,
             rpc_url,
             identity_account,
             vote_account,
@@ -73,10 +77,9 @@ impl Metrics {
         }
     }
 
-    pub fn init_state(&self) -> AppState {
-        let mut state = AppState {
-            registry: Registry::default(),
-        };
+    pub async fn init_registry(&self, shared_state: Arc<Mutex<AppState>>) {
+        let mut state = shared_state.lock().await;
+        
         state
             .registry
             .register("solana_slot", "Slot of cluster", self.slot.clone());
@@ -142,8 +145,6 @@ impl Metrics {
             "Average of last non-zero block rewards",
             self.last_block_rewards.clone(),
         );
-
-        state
     }
 
     pub fn run_loop(self: Arc<Self>) -> tokio::task::JoinHandle<()> {
@@ -213,22 +214,60 @@ impl Metrics {
                     let (epoch, epoch_progress) = epoch_info;
                     self.set_epoch(epoch);
                     self.set_epoch_progress(epoch_progress);
+
+                    let jito_tips = match client.get_jito_tips(epoch).await {
+                        Ok(tips) => Some(tips),
+                        Err(e) => {
+                            error!("Error fetching jito tips: {}", e);
+                            None
+                        }
+                    };
+
+                    if let Some(jito_tips) = jito_tips {
+                        self.set_jito_tips(jito_tips);
+                    }
+
+                    // Send slot/epoch info to background task
+                    let leader_slots = match client.get_leader_info().await {
+                        Ok(slots) => slots,
+                        Err(e) => {
+                            error!("Error fetching leader slots: {}", e);
+                            Vec::new()
+                        }
+                    };
+
+                    let _ = slot_tx.send((slot.unwrap_or(0), epoch as u64, leader_slots.clone()));
+
+                    let next_slot_ms = match client
+                        .get_ms_to_next_slot(slot.unwrap_or(0), leader_slots)
+                        .await
+                    {
+                        Ok(ms) => Some(ms),
+                        Err(e) => {
+                            error!("Error fetching ms to next slot: {}", e);
+                            None
+                        }
+                    };
+
+                    if let Some(next_slot_ms) = next_slot_ms {
+                        self.set_ms_to_next_slot(next_slot_ms);
+                    }
                 }
 
-                let stake = match client.get_stake_details().await {
-                    Ok(e) => Some(e),
+                let stake_details = match client.get_stake_details().await {
+                    Ok(s) => Some(s),
                     Err(e) => {
-                        error!("Error fetching stake_details: {}", e);
+                        error!("Error fetching stake details: {}", e);
                         None
                     }
                 };
 
-                if let Some(stake) = stake {
-                    self.set_stake(stake);
+                if let Some(stake_details) = stake_details {
+                    self.set_stake(stake_details);
                 }
 
                 let identity_balance = match client.get_identity_balance().await {
-                    Ok(e) => Some(e),
+                    Ok(b) => Some(b),
                     Err(e) => {
                         error!("Error fetching identity balance: {}", e);
                         None
@@ -240,9 +279,9 @@ impl Metrics {
                 }
 
                 let vote_account_balance = match client.get_vote_balance().await {
-                    Ok(e) => Some(e),
+                    Ok(b) => Some(b),
                     Err(e) => {
-                        error!("Error fetching vote account: {}", e);
+                        error!("Error fetching vote account balance: {}", e);
                         None
                     }
                 };
@@ -251,70 +290,26 @@ impl Metrics {
                     self.set_vote_account_balance(vote_account_balance);
                 }
 
-                let leader_slots = match client.get_leader_info().await {
-                    Ok(mut e) => {
-                        e.sort();
-                        Some(e)
-                    }
-                    Err(e) => {
-                        error!("Error fetching leader slots: {}", e);
-                        Some(vec![])
-                    }
-                };
-
                 let block_production = match client.get_block_production().await {
-                    Ok(e) => Some(e),
+                    Ok(b) => Some(b),
                     Err(e) => {
                         error!("Error fetching block production: {}", e);
                         None
                     }
                 };
 
-                let ms_to_next_slot =
-                    if let (Some(slot), Some(leader_slots)) = (slot, leader_slots.clone()) {
-                        match client.get_ms_to_next_slot(slot, leader_slots).await {
-                            Ok(e) => Some(e),
-                            Err(e) => {
-                                error!("Error fetching time to next slot: {}", e);
-                                None
-                            }
-                        }
-                    } else {
-                        None
-                    };
-
-                if let Some(ms_to_next_slot) = ms_to_next_slot {
-                    self.set_ms_to_next_slot(ms_to_next_slot);
-                }
-
-                if let (Some(leader_slots), Some((total, produced))) =
-                    (leader_slots.as_ref(), block_production)
-                {
+                if let Some(block_production) = block_production {
+                    let (blocks_produced, blocks_total) = block_production;
+                    let blocks_skipped = blocks_total - blocks_produced;
                     self.set_block_production(
-                        leader_slots.len() as u64,
-                        produced as u64,
-                        (total - produced) as u64,
+                        blocks_total as u64,
+                        blocks_produced as u64,
+                        blocks_skipped as u64,
                     );
                 }
 
-                let jito_tips = if let Some((epoch, _)) = epoch_info {
-                    match client.get_jito_tips(epoch).await {
-                        Ok(e) => Some(e),
-                        Err(e) => {
-                            error!("Error fetching jito tips: {}", e);
-                            None
-                        }
-                    }
-                } else {
-                    None
-                };
-
-                if let Some(jito_tips) = jito_tips {
-                    self.set_jito_tips(jito_tips);
-                }
-
                 let vote_credit_rank = match client.get_vote_credit_rank().await {
-                    Ok(e) => Some(e),
+                    Ok(r) => Some(r),
                     Err(e) => {
                         error!("Error fetching vote credit rank: {}", e);
                         None
@@ -326,9 +321,9 @@ impl Metrics {
                 }
 
                 let usd_price = match client.get_sol_usd_price().await {
-                    Ok(e) => Some(e),
+                    Ok(p) => Some(p),
                     Err(e) => {
-                        error!("Error fetching SOL/USD: {}", e);
+                        error!("Error fetching USD price: {}", e);
                         None
                     }
                 };
@@ -337,16 +332,8 @@ impl Metrics {
                     self.set_usd_price(usd_price);
                 }
 
-                // Send current slot and leader slots to background task for block rewards processing
-                if let (Some(slot), Some(leader_slots), Some(epoch_info)) = (slot, leader_slots.as_ref(), epoch_info.as_ref()) {
-                    let (epoch, _) = *epoch_info;
-                    if let Err(_) = slot_tx.send((slot, epoch as u64, leader_slots.clone())) {
-                        error!("Failed to send slot info to background block rewards task");
-                    }
-                }
-
-                // Add a small sleep to prevent overwhelming the RPC in the main loop
-                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
+                // Sleep between metric updates
+                tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
             }
         })
     }
@@ -354,6 +341,7 @@ impl Metrics {
     pub fn set_slot(&self, slot: u64) {
         self.slot
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(slot as i64);
@@ -362,6 +350,7 @@ impl Metrics {
     pub fn set_epoch(&self, epoch: i64) {
         self.epoch
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(epoch);
@@ -370,6 +359,7 @@ impl Metrics {
     pub fn set_epoch_progress(&self, progress: i64) {
         self.epoch_progress
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(progress);
@@ -378,49 +368,56 @@ impl Metrics {
     pub fn set_stake(&self, stake_state: StakeState) {
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "activated_stake".to_string(),
+                network: self.network.clone(),
+                stake_type: "activated".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.activated_stake as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "activating_stake".to_string(),
+                network: self.network.clone(),
+                stake_type: "activating".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.activating_stake as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "deactivating_stake".to_string(),
+                network: self.network.clone(),
+                stake_type: "deactivating".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.deactivating_stake as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "locked_stake".to_string(),
+                network: self.network.clone(),
+                stake_type: "locked".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.locked_stake as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "activated_stake_accounts".to_string(),
+                network: self.network.clone(),
+                stake_type: "activated_accounts".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.activated_stake_accounts as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "activating_stake_accounts".to_string(),
+                network: self.network.clone(),
+                stake_type: "activating_accounts".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.activating_stake_accounts as i64);
 
         self.stake
             .get_or_create(&StakeLabels {
-                stake_type: "deactivating_stake_accounts".to_string(),
+                network: self.network.clone(),
+                stake_type: "deactivating_accounts".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(stake_state.deactivating_stake_accounts as i64);
@@ -429,6 +426,7 @@ impl Metrics {
     pub fn set_identity_balance(&self, balance: u64) {
         self.identity_balance
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(balance as i64);
@@ -437,6 +435,7 @@ impl Metrics {
     pub fn set_vote_account_balance(&self, balance: u64) {
         self.vote_account_balance
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(balance as i64);
@@ -445,6 +444,7 @@ impl Metrics {
     pub fn set_block_production(&self, total: u64, produced: u64, skipped: u64) {
         self.blocks
             .get_or_create(&BlockLabels {
+                network: self.network.clone(),
                 block_type: "total".to_string(),
                 vote_account: self.vote_account.clone(),
             })
@@ -452,12 +452,15 @@ impl Metrics {
 
         self.blocks
             .get_or_create(&BlockLabels {
+                network: self.network.clone(),
                 block_type: "produced".to_string(),
                 vote_account: self.vote_account.clone(),
             })
             .set(produced as i64);
+
         self.blocks
             .get_or_create(&BlockLabels {
+                network: self.network.clone(),
                 block_type: "skipped".to_string(),
                 vote_account: self.vote_account.clone(),
             })
@@ -467,6 +470,7 @@ impl Metrics {
     pub fn set_jito_tips(&self, tips: u64) {
         self.jito_tips
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(tips as i64);
@@ -475,6 +479,7 @@ impl Metrics {
     pub fn set_vote_credit_rank(&self, rank: u32) {
         self.vote_credit_rank
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(rank as i64);
@@ -483,6 +488,7 @@ impl Metrics {
     pub fn set_usd_price(&self, price: i64) {
         self.usd_price
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(price);
@@ -491,6 +497,7 @@ impl Metrics {
     pub fn set_epoch_block_rewards(&self, block_rewards: i64) {
         self.epoch_block_rewards
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(block_rewards);
@@ -499,6 +506,7 @@ impl Metrics {
     pub fn set_ms_to_next_slot(&self, ms_to_next_slot: i64) {
         self.ms_to_next_slot
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(ms_to_next_slot);
@@ -507,6 +515,7 @@ impl Metrics {
     pub fn set_last_block_rewards(&self, last_block_rewards: i64) {
         self.last_block_rewards
             .get_or_create(&MethodLabels {
+                network: self.network.clone(),
                 vote_account: self.vote_account.clone(),
             })
             .set(last_block_rewards);
@@ -519,15 +528,16 @@ pub struct AppState {
 
 pub async fn metrics_handler(State(state): State<Arc<Mutex<AppState>>>) -> impl IntoResponse {
     let state = state.lock().await;
-    let mut buffer = String::new();
-    encode(&mut buffer, &state.registry).unwrap();
-
+    let mut body = String::new();
+    if let Err(e) = encode(&mut body, &state.registry) {
+        return Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::from(format!("Error encoding metrics: {}", e)))
+            .unwrap();
+    }
     Response::builder()
         .status(StatusCode::OK)
-        .header(
-            CONTENT_TYPE,
-            "application/openmetrics-text; version=1.0.0; charset=utf-8",
-        )
-        .body(Body::from(buffer))
+        .header(CONTENT_TYPE, "application/openmetrics-text")
+        .body(Body::from(body))
         .unwrap()
 }

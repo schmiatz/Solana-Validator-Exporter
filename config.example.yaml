@@ -1,4 +1,19 @@
-rpc_url: "YOUR_RPC_URL"
+# Global configuration
 port: 9090
-vote_account: "YOUR_VOTE_ACCOUNT_PUBKEY"
-identity_account: "YOUR_IDENTITY_ACCOUNT_PUBKEY" 
+
+# RPC URLs for different networks (at least one required)
+rpc_url_mainnet: "https://api.mainnet-beta.solana.com"
+#rpc_url_testnet: "https://api.testnet.solana.com"  # Optional
+# rpc_url_devnet: "https://api.devnet.solana.com"  # Optional
+
+# Validator accounts for mainnet (at least one validator configuration required)
+mainnet_vote_account: "YOUR_MAINNET_VOTE_ACCOUNT_PUBKEY"
+mainnet_identity_account: "YOUR_MAINNET_IDENTITY_ACCOUNT_PUBKEY"
+
+# Optional: Additional validators for other networks
+testnet_vote_account: "YOUR_TESTNET_VOTE_ACCOUNT_PUBKEY"
+testnet_identity_account: "YOUR_TESTNET_IDENTITY_ACCOUNT_PUBKEY"
+
+# Optional: Additional validators for other networks
+devnet_vote_account: "YOUR_DEVNET_VOTE_ACCOUNT_PUBKEY"
+devnet_identity_account: "YOUR_DEVNET_IDENTITY_ACCOUNT_PUBKEY"

@@ -1,1460 +1,1527 @@
 {
     "annotations": {
-        "list": [
-            {
-                "builtIn": 1,
-                "datasource": {
-                    "type": "grafana",
-                    "uid": "-- Grafana --"
-                },
-                "enable": true,
-                "hide": true,
-                "iconColor": "rgba(0, 211, 255, 1)",
-                "name": "Annotations & Alerts",
-                "type": "dashboard"
-            }
-        ]
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
     },
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 70,
+    "id": 8,
     "links": [],
     "panels": [
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "currencyUSD"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 0,
-                "y": 0
-            },
-            "id": 26,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "(solana_stake{stake_type=\"activated_stake\"} / 1e9) * ignoring(stake_type) group_left() (solana_usd_price / 1e5)",
-                    "instant": true,
-                    "legendFormat": "Activated Stake (USD)",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Activated Stake (USD)",
-            "transparent": true,
-            "type": "stat"
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "fieldMinMax": false,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "short"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 6,
-                "y": 0
-            },
-            "id": 4,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "text": {},
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_stake{stake_type=\"activated_stake\"} / 1e9",
-                    "instant": true,
-                    "legendFormat": "Activated Stake (SOL)",
-                    "range": false,
-                    "refId": "A"
+                  "color": "green",
+                  "value": null
                 }
-            ],
-            "title": "Activated Stake (SOL)",
-            "transparent": true,
-            "type": "stat"
+              ]
+            },
+            "unit": "currencyUSD"
+          },
+          "overrides": []
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "red"
-                            },
-                            {
-                                "color": "green",
-                                "value": 0
-                            }
-                        ]
-                    },
-                    "unit": "short"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 12,
-                "y": 0
-            },
-            "id": 7,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "(solana_stake{stake_type=\"activating_stake\"} - ignoring(stake_type) group_left() solana_stake{stake_type=\"deactivating_stake\"}) / 1e9",
-                    "format": "time_series",
-                    "instant": true,
-                    "legendFormat": "Stake Delta (SOL)",
-                    "range": false,
-                    "refId": "A"
-                }
+        "id": 26,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Stake Delta (SOL)",
-            "transparent": true,
-            "type": "stat"
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
         },
-        {
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
             "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 18,
-                "y": 0
-            },
-            "id": 28,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_vote_credit_rank",
-                    "instant": true,
-                    "legendFormat": "Vote Credit Rank",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Vote Credit Rank",
-            "transparent": true,
-            "type": "stat"
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "(solana_stake{vote_account=\"$vote_account\", stake_type=\"activated\"} / 1e9) * ignoring(stake_type) group_left() (solana_usd_price{vote_account=\"$vote_account\"} / 1e5)",
+            "instant": true,
+            "legendFormat": "Activated Stake (USD)",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Activated Stake (USD)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "decimals": 2,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "currencyUSD"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 0,
-                "y": 3
-            },
-            "id": 32,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "fieldMinMax": false,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_usd_price / 1e5",
-                    "instant": true,
-                    "legendFormat": "SOL Price (USD)",
-                    "range": false,
-                    "refId": "A"
+                  "color": "green",
+                  "value": null
                 }
-            ],
-            "title": "SOL Price (USD)",
-            "transparent": true,
-            "type": "stat"
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "decimals": 2,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 6,
-                "y": 3
-            },
-            "id": 25,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_epoch_block_rewards / 1e9",
-                    "format": "time_series",
-                    "instant": true,
-                    "legendFormat": "Epoch Block Rewards (SOL)",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Epoch Block Rewards (SOL)",
-            "transparent": true,
-            "type": "stat"
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 6,
+          "y": 0
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "ms"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 12,
-                "y": 3
-            },
-            "id": 30,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_ms_to_next_slot",
-                    "instant": true,
-                    "legendFormat": "Time to Next Leader Slot",
-                    "range": false,
-                    "refId": "A"
-                }
+        "id": 4,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Time to Next Leader Slot",
-            "transparent": true,
-            "type": "stat"
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "text": {},
+          "textMode": "auto",
+          "wideLayout": true
         },
-        {
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
             "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "percentunit"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 18,
-                "y": 3
-            },
-            "id": 35,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_blocks{block_type=\"skipped\"} / ignoring(block_type) group_left() (solana_blocks{block_type=\"produced\"} + ignoring(block_type) group_left() solana_blocks{block_type=\"skipped\"})",
-                    "instant": true,
-                    "legendFormat": "Skip Rate",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Skip Rate",
-            "transparent": true,
-            "type": "stat"
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_stake{vote_account=\"$vote_account\", stake_type=\"activated\"} / 1e9",
+            "instant": true,
+            "legendFormat": "Activated Stake (SOL)",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Activated Stake (SOL)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisBorderShow": false,
-                        "axisCenteredZero": false,
-                        "axisColorMode": "text",
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "barWidthFactor": 0.6,
-                        "drawStyle": "line",
-                        "fillOpacity": 0,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "insertNulls": false,
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "auto",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "decimals": 3,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 9,
-                "w": 8,
-                "x": 0,
-                "y": 6
-            },
-            "id": 9,
-            "options": {
-                "legend": {
-                    "calcs": [
-                        "last"
-                    ],
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "showLegend": true
-                },
-                "tooltip": {
-                    "hideZeros": false,
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "expr": "solana_identity_balance / 1e9",
-                    "legendFormat": "Identity Account",
-                    "range": true,
-                    "refId": "A"
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 0
                 }
-            ],
-            "title": "Balances (SOL)",
-            "transparent": true,
-            "type": "timeseries"
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisBorderShow": false,
-                        "axisCenteredZero": false,
-                        "axisColorMode": "text",
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "barWidthFactor": 0.6,
-                        "drawStyle": "line",
-                        "fillOpacity": 0,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "insertNulls": false,
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "auto",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "decimals": 4,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 9,
-                "w": 8,
-                "x": 8,
-                "y": 6
-            },
-            "id": 33,
-            "options": {
-                "legend": {
-                    "calcs": [
-                        "last"
-                    ],
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "showLegend": true
-                },
-                "tooltip": {
-                    "hideZeros": false,
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "expr": "solana_last_block_rewards / 1e9",
-                    "legendFormat": "Avg Block Rewards",
-                    "range": true,
-                    "refId": "A"
-                }
-            ],
-            "title": "Avg Block Rewards (Last 4 Slots)",
-            "transparent": true,
-            "type": "timeseries"
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 12,
+          "y": 0
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisBorderShow": false,
-                        "axisCenteredZero": false,
-                        "axisColorMode": "text",
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "barWidthFactor": 0.6,
-                        "drawStyle": "line",
-                        "fillOpacity": 0,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "insertNulls": false,
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "auto",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "decimals": 3,
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 9,
-                "w": 8,
-                "x": 16,
-                "y": 6
-            },
-            "id": 42,
-            "options": {
-                "legend": {
-                    "calcs": [
-                        "last"
-                    ],
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "showLegend": true
-                },
-                "tooltip": {
-                    "hideZeros": false,
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "grafanacloud-prom"
-                    },
-                    "editorMode": "code",
-                    "expr": "(solana_jito_tips) / 1e9",
-                    "hide": false,
-                    "instant": false,
-                    "legendFormat": "Total Jito Tips",
-                    "range": true,
-                    "refId": "C"
-                }
+        "id": 7,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Jito Tips",
-            "transparent": true,
-            "type": "timeseries"
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
         },
-        {
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
             "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 0,
-                "y": 15
-            },
-            "id": 36,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_blocks{block_type=\"total\"}",
-                    "instant": true,
-                    "legendFormat": "Total Leader Slots",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Total Leader Slots",
-            "transparent": true,
-            "type": "stat"
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "(solana_stake{vote_account=\"$vote_account\", stake_type=\"activating\"} - ignoring(stake_type) group_left() solana_stake{vote_account=\"$vote_account\", stake_type=\"deactivating\"}) / 1e9",
+            "instant": true,
+            "legendFormat": "Stake Delta (SOL)",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Stake Delta (SOL)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 6,
-                "y": 15
-            },
-            "id": 39,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_blocks{block_type=\"total\"} - ignoring(block_type) group_left() (solana_blocks{block_type=\"produced\"} + ignoring(block_type) group_left() solana_blocks{block_type=\"skipped\"})",
-                    "instant": true,
-                    "legendFormat": "Total Leader Slots",
-                    "range": false,
-                    "refId": "A"
+                  "color": "green",
+                  "value": null
                 }
-            ],
-            "title": "Remaining Leader Slots",
-            "transparent": true,
-            "type": "stat"
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "percent"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 12,
-                "y": 15
-            },
-            "id": 37,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_epoch_progress / 1e2",
-                    "instant": true,
-                    "legendFormat": "Epoch Progress",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Epoch Progress",
-            "transparent": true,
-            "type": "stat"
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 18,
+          "y": 0
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 6,
-                "x": 18,
-                "y": 15
-            },
-            "id": 38,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_epoch",
-                    "instant": true,
-                    "legendFormat": "Current Epoch",
-                    "range": false,
-                    "refId": "A"
-                }
+        "id": 28,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Current Epoch",
-            "transparent": true,
-            "type": "stat"
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        }
-                    },
-                    "mappings": []
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 18
-            },
-            "id": 29,
-            "options": {
-                "displayLabels": [],
-                "legend": {
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "showLegend": true,
-                    "values": [
-                        "value"
-                    ]
-                },
-                "pieType": "donut",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "tooltip": {
-                    "hideZeros": false,
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "grafanacloud-prom"
-                    },
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_blocks{block_type=\"produced\"}",
-                    "hide": false,
-                    "instant": true,
-                    "legendFormat": "{{block_type}}",
-                    "range": false,
-                    "refId": "B"
-                },
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "grafanacloud-prom"
-                    },
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_blocks{block_type=\"skipped\"}",
-                    "hide": false,
-                    "instant": true,
-                    "legendFormat": "{{block_type}}",
-                    "range": false,
-                    "refId": "C"
-                }
-            ],
-            "title": "Block Production",
-            "transparent": true,
-            "type": "piechart"
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_vote_credit_rank{vote_account=\"$vote_account\"}",
+            "instant": true,
+            "legendFormat": "Vote Credit Rank",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Vote Credit Rank",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        }
-                    },
-                    "decimals": 2,
-                    "mappings": [],
-                    "unit": "SOL"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 18
-            },
-            "id": 18,
-            "options": {
-                "legend": {
-                    "displayMode": "table",
-                    "placement": "bottom",
-                    "showLegend": true,
-                    "values": [
-                        "percent"
-                    ]
-                },
-                "pieType": "donut",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "tooltip": {
-                    "hideZeros": false,
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "(solana_stake{stake_type=\"activated_stake\"} - ignoring(stake_type,pod,instance) group_left() solana_stake{stake_type=\"locked_stake\"}) / 1e9",
-                    "instant": true,
-                    "legendFormat": "Unlocked Stake",
-                    "range": false,
-                    "refId": "A"
-                },
-                {
-                    "datasource": {
-                        "type": "prometheus",
-                        "uid": "grafanacloud-prom"
-                    },
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_stake{stake_type=\"locked_stake\"} / 1e9",
-                    "hide": false,
-                    "instant": true,
-                    "legendFormat": "Locked Stake",
-                    "range": false,
-                    "refId": "B"
+                  "color": "green",
+                  "value": null
                 }
-            ],
-            "title": "Stake Breakdown",
-            "transparent": true,
-            "type": "piechart"
+              ]
+            },
+            "unit": "currencyUSD"
+          },
+          "overrides": []
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 8,
-                "x": 0,
-                "y": 26
-            },
-            "id": 34,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_stake{stake_type=\"activated_stake_accounts\"}",
-                    "instant": true,
-                    "legendFormat": "Activated Stake Accounts",
-                    "range": false,
-                    "refId": "A"
-                }
-            ],
-            "title": "Activated Stake Accounts",
-            "transparent": true,
-            "type": "stat"
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 3
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
-            },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 8,
-                "x": 8,
-                "y": 26
-            },
-            "id": 40,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
-                {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_stake{stake_type=\"activating_stake_accounts\"}",
-                    "instant": true,
-                    "legendFormat": "Activating Stake Accounts",
-                    "range": false,
-                    "refId": "A"
-                }
+        "id": 32,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Activating Stake Accounts",
-            "transparent": true,
-            "type": "stat"
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
         },
-        {
-            "datasource": {
-                "type": "prometheus",
-                "uid": "grafanacloud-prom"
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_usd_price{vote_account=\"$vote_account\"} / 1e5",
+            "instant": true,
+            "legendFormat": "SOL Price (USD)",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "SOL Price (USD)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
             },
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "thresholds"
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "red"
-                            }
-                        ]
-                    },
-                    "unit": "none"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 3,
-                "w": 8,
-                "x": 16,
-                "y": 26
-            },
-            "id": 41,
-            "options": {
-                "colorMode": "value",
-                "graphMode": "area",
-                "justifyMode": "auto",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                    "calcs": [
-                        "lastNotNull"
-                    ],
-                    "fields": "",
-                    "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-            },
-            "pluginVersion": "12.1.0-88106",
-            "targets": [
+            "decimals": 2,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
                 {
-                    "editorMode": "code",
-                    "exemplar": false,
-                    "expr": "solana_stake{stake_type=\"deactivating_stake_accounts\"}",
-                    "instant": true,
-                    "legendFormat": "Deactivating Stake Accounts",
-                    "range": false,
-                    "refId": "A"
+                  "color": "green",
+                  "value": null
                 }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 6,
+          "y": 3
+        },
+        "id": 25,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
             ],
-            "title": "Deactivating Stake Accounts",
-            "transparent": true,
-            "type": "stat"
-        }
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_epoch_block_rewards{vote_account=\"$vote_account\"} / 1e9",
+            "instant": true,
+            "legendFormat": "Epoch Block Rewards (SOL)",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Epoch Block Rewards (SOL)",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 12,
+          "y": 3
+        },
+        "id": 30,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_ms_to_next_slot{vote_account=\"$vote_account\"}",
+            "instant": true,
+            "legendFormat": "Time to Next Leader Slot",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Time to Next Leader Slot",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "percentunit"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 18,
+          "y": 3
+        },
+        "id": 35,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_blocks{vote_account=\"$vote_account\", block_type=\"skipped\"} / ignoring(block_type) group_left() (solana_blocks{vote_account=\"$vote_account\", block_type=\"produced\"} + ignoring(block_type) group_left() solana_blocks{vote_account=\"$vote_account\", block_type=\"skipped\"})",
+            "instant": true,
+            "legendFormat": "Skip Rate",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Skip Rate",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 3,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 8,
+          "x": 0,
+          "y": 6
+        },
+        "id": 9,
+        "options": {
+          "legend": {
+            "calcs": [
+              "last"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "12.1.0-88106",
+        "targets": [
+          {
+            "editorMode": "code",
+            "expr": "solana_identity_balance{vote_account=\"$vote_account\"} / 1e9",
+            "legendFormat": "Identity Account",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Balances (SOL)",
+        "transparent": true,
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 4,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 8,
+          "x": 8,
+          "y": 6
+        },
+        "id": 33,
+        "options": {
+          "legend": {
+            "calcs": [
+              "last"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "12.1.0-88106",
+        "targets": [
+          {
+            "editorMode": "code",
+            "expr": "solana_last_block_rewards{vote_account=\"$vote_account\"} / 1e9",
+            "legendFormat": "Avg Block Rewards",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Avg Block Rewards (Last 4 Slots)",
+        "transparent": true,
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "decimals": 3,
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 9,
+          "w": 8,
+          "x": 16,
+          "y": 6
+        },
+        "id": 42,
+        "options": {
+          "legend": {
+            "calcs": [
+              "last"
+            ],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "12.1.0-88106",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "expr": "solana_jito_tips{vote_account=\"$vote_account\"} / 1e9",
+            "hide": false,
+            "instant": false,
+            "legendFormat": "Total Jito Tips",
+            "range": true,
+            "refId": "C"
+          }
+        ],
+        "title": "Jito Tips",
+        "transparent": true,
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 0,
+          "y": 15
+        },
+        "id": 36,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_blocks{vote_account=\"$vote_account\", block_type=\"total\"}",
+            "instant": true,
+            "legendFormat": "Total Leader Slots",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Total Leader Slots",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 6,
+          "y": 15
+        },
+        "id": 39,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_blocks{vote_account=\"$vote_account\", block_type=\"total\"} - ignoring(block_type) group_left() (solana_blocks{vote_account=\"$vote_account\", block_type=\"produced\"} + ignoring(block_type) group_left() solana_blocks{vote_account=\"$vote_account\", block_type=\"skipped\"})",
+            "instant": true,
+            "legendFormat": "Remaining Leader Slots",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Remaining Leader Slots",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 12,
+          "y": 15
+        },
+        "id": 37,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_epoch_progress{vote_account=\"$vote_account\"} / 1e2",
+            "instant": true,
+            "legendFormat": "Epoch Progress",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Epoch Progress",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 6,
+          "x": 18,
+          "y": 15
+        },
+        "id": 38,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_epoch{vote_account=\"$vote_account\"}",
+            "instant": true,
+            "legendFormat": "Current Epoch",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Current Epoch",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              }
+            },
+            "mappings": []
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 18
+        },
+        "id": 29,
+        "options": {
+          "displayLabels": [],
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true,
+            "values": [
+              "value"
+            ]
+          },
+          "pieType": "donut",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "12.1.0-88106",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_blocks{vote_account=\"$vote_account\", block_type=\"produced\"}",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "{{block_type}}",
+            "range": false,
+            "refId": "B"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_blocks{vote_account=\"$vote_account\", block_type=\"skipped\"}",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "{{block_type}}",
+            "range": false,
+            "refId": "C"
+          }
+        ],
+        "title": "Block Production",
+        "transparent": true,
+        "type": "piechart"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              }
+            },
+            "decimals": 2,
+            "mappings": [],
+            "unit": "SOL"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 18
+        },
+        "id": 18,
+        "options": {
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true,
+            "values": [
+              "percent"
+            ]
+          },
+          "pieType": "donut",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "12.1.0-88106",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "(solana_stake{vote_account=\"$vote_account\", stake_type=\"activated\"} - ignoring(stake_type,pod,instance) group_left() solana_stake{vote_account=\"$vote_account\", stake_type=\"locked\"}) / 1e9",
+            "instant": true,
+            "legendFormat": "Unlocked Stake",
+            "range": false,
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_stake{vote_account=\"$vote_account\", stake_type=\"locked_stake\"} / 1e9",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "Locked Stake",
+            "range": false,
+            "refId": "B"
+          }
+        ],
+        "title": "Stake Breakdown",
+        "transparent": true,
+        "type": "piechart"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 8,
+          "x": 0,
+          "y": 26
+        },
+        "id": 34,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_stake{vote_account=\"$vote_account\", stake_type=\"activated_accounts\"}",
+            "instant": true,
+            "legendFormat": "Activated Stake Accounts",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Activated Stake Accounts",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 8,
+          "x": 8,
+          "y": 26
+        },
+        "id": 40,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_stake{vote_account=\"$vote_account\", stake_type=\"activating_accounts\"}",
+            "instant": true,
+            "legendFormat": "Activating Stake Accounts",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Activating Stake Accounts",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "grafanacloud-prom"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 8,
+          "x": 16,
+          "y": 26
+        },
+        "id": 41,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.1.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "grafanacloud-prom"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "solana_stake{vote_account=\"$vote_account\", stake_type=\"deactivating_accounts\"}",
+            "instant": true,
+            "legendFormat": "Deactivating Stake Accounts",
+            "range": false,
+            "refId": "A"
+          }
+        ],
+        "title": "Deactivating Stake Accounts",
+        "transparent": true,
+        "type": "stat"
+      }
     ],
-    "preload": false,
     "refresh": "1m",
-    "schemaVersion": 41,
+    "schemaVersion": 39,
     "tags": [],
     "templating": {
-        "list": []
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "Ehdn9LdjTAURQSMoDPERXLehtvzy7QD762wwPkzGT7RS",
+            "value": "Ehdn9LdjTAURQSMoDPERXLehtvzy7QD762wwPkzGT7RS"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "grafanacloud-prom"
+          },
+          "definition": "",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Vote Account",
+          "multi": false,
+          "name": "vote_account",
+          "options": [],
+          "query": {
+            "query": "label_values(solana_slot, vote_account)",
+            "refId": "Var1"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        }
+      ]
     },
     "time": {
-        "from": "now-24h",
-        "to": "now"
+      "from": "now-24h",
+      "to": "now"
     },
     "timepicker": {},
     "timezone": "utc",
-    "title": "Solana",
-    "uid": "ee26veksgu0w0e",
-    "version": 53
-}
+    "title": "Solana Metrics",
+    "uid": "ee26veksgu0w0e_var",
+    "version": 1,
+    "weekStart": ""
+  }
