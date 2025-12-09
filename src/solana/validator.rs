@@ -46,6 +46,10 @@ pub struct SlotBasedMetrics {
     pub client: SolanaClient,
     pub on_vote_latency: Option<Box<dyn Fn(u64) + Send + Sync>>,
     pub on_slot_update: Option<Box<dyn Fn(u64) + Send + Sync>>,
+    // Max vote latency tracking
+    pub max_vote_latency: u64,
+    pub max_vote_latency_last_reset: std::time::Instant,
+    pub on_vote_latency_max: Option<Box<dyn Fn(u64) + Send + Sync>>,
 }
 
 pub struct EpochBasedBlockRewards {
@@ -55,6 +59,9 @@ pub struct EpochBasedBlockRewards {
     pub epoch_schedule: solana_sdk::epoch_schedule::EpochSchedule,
     pub total_block_rewards: i64,
     pub on_block_rewards_update: Option<Box<dyn Fn(i64) + Send + Sync>>,
+    // Track recent non-zero block rewards for averaging
+    pub recent_block_rewards: Vec<i64>,
+    pub on_last_block_rewards_update: Option<Box<dyn Fn(i64) + Send + Sync>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1184,6 +1191,9 @@ impl SlotBasedMetrics {
             client,
             on_vote_latency: None,
             on_slot_update: None,
+            max_vote_latency: 0,
+            max_vote_latency_last_reset: std::time::Instant::now(),
+            on_vote_latency_max: None,
         })
     }
 
@@ -1214,6 +1224,19 @@ impl SlotBasedMetrics {
         let new_epoch = self.epoch_schedule.get_epoch(current_slot);
         if new_epoch != self.current_epoch {
             self.handle_epoch_change(new_epoch).await?;
+        }
+        
+        // Check if we need to reset max vote latency (every 30 seconds)
+        if self.max_vote_latency_last_reset.elapsed() >= Duration::from_secs(30) {
+            if self.max_vote_latency > 0 {
+                log::info!("Max vote latency in last 30s: {} slots", self.max_vote_latency);
+            }
+            // Report max before reset
+            if let Some(on_vote_latency_max) = &self.on_vote_latency_max {
+                on_vote_latency_max(self.max_vote_latency);
+            }
+            self.max_vote_latency = 0;
+            self.max_vote_latency_last_reset = std::time::Instant::now();
         }
         
         // Process all new slots
@@ -1247,7 +1270,7 @@ impl SlotBasedMetrics {
         Ok(())
     }
     
-    pub async fn process_slot(&self, slot: u64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn process_slot(&mut self, slot: u64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Get leader slots for current epoch
         let leader_slots = self.leader_slots_cache.get(&self.current_epoch)
             .ok_or("No leader slots cached for current epoch")?;
@@ -1264,6 +1287,11 @@ impl SlotBasedMetrics {
                           latency, slot, slot.saturating_sub(latency));
                 if let Some(on_vote_latency) = &self.on_vote_latency {
                     on_vote_latency(latency);
+                }
+                // Track max vote latency
+                if latency > self.max_vote_latency {
+                    self.max_vote_latency = latency;
+                    log::info!("New max vote latency: {} slots", latency);
                 }
             }
             Ok(None) => {
@@ -1290,19 +1318,16 @@ impl EpochBasedBlockRewards {
                    client.identity_account, current_epoch, first_slot, 
                    epoch_schedule.get_last_slot_in_epoch(current_epoch));
         
-        let mut rewards = Self {
+        let rewards = Self {
             client,
             current_epoch,
             last_processed_slot: first_slot - 1, // Start from before first slot to process all
             epoch_schedule,
             total_block_rewards: 0,
             on_block_rewards_update: None,
+            recent_block_rewards: Vec::new(),
+            on_last_block_rewards_update: None,
         };
-        
-        // Initialize with 0 rewards
-        if let Some(on_update) = &rewards.on_block_rewards_update {
-            on_update(0);
-        }
         
         Ok(rewards)
     }
@@ -1374,6 +1399,12 @@ impl EpochBasedBlockRewards {
                         if rewards > 0 {
                             log::info!("Found block rewards: {} in leader slot {}", rewards, leader_slot);
                             new_rewards += rewards;
+                            // Track recent non-zero rewards for averaging
+                            self.recent_block_rewards.push(rewards);
+                            // Keep only the last 10 non-zero rewards
+                            if self.recent_block_rewards.len() > 10 {
+                                self.recent_block_rewards.remove(0);
+                            }
                         }
                         processed_count += 1;
                     }
@@ -1415,10 +1446,28 @@ impl EpochBasedBlockRewards {
             log::warn!("Block rewards callback is not set!");
         }
         
+        // Calculate and report average of last 4 non-zero block rewards
+        if let Some(on_last_update) = &self.on_last_block_rewards_update {
+            let last_rewards = self.get_last_block_rewards_avg();
+            log::debug!("Calling last block rewards callback with value: {}", last_rewards);
+            on_last_update(last_rewards);
+        }
+        
         // Update last processed slot to current slot (but don't go beyond last slot of epoch)
         self.last_processed_slot = std::cmp::min(current_slot, last_slot);
         
         Ok(())
+    }
+    
+    /// Calculate average of the last 4 non-zero block rewards
+    fn get_last_block_rewards_avg(&self) -> i64 {
+        if self.recent_block_rewards.is_empty() {
+            return 0;
+        }
+        let count = std::cmp::min(4, self.recent_block_rewards.len());
+        let start = self.recent_block_rewards.len().saturating_sub(4);
+        let sum: i64 = self.recent_block_rewards[start..].iter().sum();
+        sum / count as i64
     }
     
     pub async fn handle_epoch_change(&mut self, new_epoch: u64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -1427,6 +1476,7 @@ impl EpochBasedBlockRewards {
         // Reset for new epoch
         self.current_epoch = new_epoch;
         self.total_block_rewards = 0;
+        self.recent_block_rewards.clear();
         
         let first_slot = self.epoch_schedule.get_first_slot_in_epoch(new_epoch);
         self.last_processed_slot = first_slot - 1; // Start from before first slot

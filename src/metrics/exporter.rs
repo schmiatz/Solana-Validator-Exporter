@@ -1,11 +1,10 @@
 use crate::solana;
-use crate::solana::validator::{StakeState, SlotBasedMetrics, EpochBasedBlockRewards};
+use crate::solana::validator::StakeState;
 use axum::body::Body;
 use axum::extract::State;
 use axum::http::header::CONTENT_TYPE;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use log::error;
 use prometheus_client::encoding::text::encode;
 use prometheus_client::encoding::EncodeLabelSet;
 use prometheus_client::metrics::family::Family;
@@ -54,6 +53,7 @@ pub struct Metrics {
     pub ms_to_next_slot: Family<MethodLabels, Gauge>,
     pub last_block_rewards: Family<MethodLabels, Gauge>,
     pub vote_latency_slots: Family<MethodLabels, Gauge>,
+    pub vote_latency_slots_max: Family<MethodLabels, Gauge>,
 }
 
 impl Metrics {
@@ -77,6 +77,7 @@ impl Metrics {
             ms_to_next_slot: Family::default(),
             last_block_rewards: Family::default(),
             vote_latency_slots: Family::default(),
+            vote_latency_slots_max: Family::default(),
         }
     }
 
@@ -154,6 +155,12 @@ impl Metrics {
             "Latest vote latency in slots (transaction_slot - voted_slot)",
             self.vote_latency_slots.clone(),
         );
+
+        state.registry.register(
+            "solana_vote_latency_slots_max",
+            "Maximum vote latency in slots over the last 30 seconds",
+            self.vote_latency_slots_max.clone(),
+        );
     }
 
     pub fn run_loop(self: Arc<Self>) -> tokio::task::JoinHandle<()> {
@@ -172,7 +179,7 @@ impl Metrics {
             );
 
             // Initialize slot-based metrics for vote latency (100ms intervals)
-            let mut slot_based_metrics = match solana::validator::SlotBasedMetrics::new(vote_latency_client).await {
+            let slot_based_metrics = match solana::validator::SlotBasedMetrics::new(vote_latency_client).await {
                 Ok(mut metrics) => {
                     log::info!("Initialized slot-based vote latency metrics for validator {}", self.identity_account);
                     
@@ -180,9 +187,6 @@ impl Metrics {
                     let vote_latency_metric = self.vote_latency_slots.clone();
                     let network = self.network.clone();
                     let vote_account = self.vote_account.clone();
-                    let slot_metric = self.slot.clone();
-                    let network_slot = self.network.clone();
-                    let vote_account_slot = self.vote_account.clone();
                     metrics.on_vote_latency = Some(Box::new(move |latency| {
                         vote_latency_metric
                             .get_or_create(&MethodLabels {
@@ -206,6 +210,22 @@ impl Metrics {
                             .set(slot as i64);
                     }));
                     
+                    // Set up callback for max vote latency (reported every 30s)
+                    let vote_latency_max_metric = self.vote_latency_slots_max.clone();
+                    let network_max = self.network.clone();
+                    let vote_account_max = self.vote_account.clone();
+                    metrics.on_vote_latency_max = Some(Box::new(move |max_latency| {
+                        vote_latency_max_metric
+                            .get_or_create(&MethodLabels {
+                                network: network_max.clone(),
+                                vote_account: vote_account_max.clone(),
+                            })
+                            .set(max_latency as i64);
+                        if max_latency > 1 {
+                            log::info!("Updated max vote latency metric: {} slots (over last 30s)", max_latency);
+                        }
+                    }));
+                    
                     metrics
                 }
                 Err(e) => {
@@ -215,7 +235,7 @@ impl Metrics {
             };
 
             // Initialize epoch-based block rewards (5-second intervals)
-            let mut epoch_block_rewards = match solana::validator::EpochBasedBlockRewards::new(block_rewards_client).await {
+            let epoch_block_rewards = match solana::validator::EpochBasedBlockRewards::new(block_rewards_client).await {
                 Ok(mut rewards) => {
                     log::info!("Initialized epoch-based block rewards for validator {}", self.identity_account);
                     
@@ -231,6 +251,20 @@ impl Metrics {
                             })
                             .set(total_rewards);
                         log::info!("Updated epoch block rewards metric: {}", total_rewards);
+                    }));
+                    
+                    // Set up callback for last block rewards (average of last 4)
+                    let last_block_rewards_metric = self.last_block_rewards.clone();
+                    let network_last = self.network.clone();
+                    let vote_account_last = self.vote_account.clone();
+                    rewards.on_last_block_rewards_update = Some(Box::new(move |avg_rewards| {
+                        last_block_rewards_metric
+                            .get_or_create(&MethodLabels {
+                                network: network_last.clone(),
+                                vote_account: vote_account_last.clone(),
+                            })
+                            .set(avg_rewards);
+                        log::debug!("Updated last block rewards metric: {}", avg_rewards);
                     }));
                     
                     rewards
@@ -345,23 +379,9 @@ impl Metrics {
                 }
             }
         }
-
-        // Update last block rewards
-        if let Ok(last_rewards) = client.get_last_block_rewards().await {
-            self.set_last_block_rewards(last_rewards);
-        }
-
-        // Update vote latency slots (get latest from recent slots)
-        let current_slot = match client.get_slot().await {
-            Ok(slot) => slot,
-            Err(_) => return,
-        };
         
-        // Check last 10 slots for vote latency
-        let slots_to_check: Vec<u64> = (current_slot.saturating_sub(10)..=current_slot).collect();
-        if let Ok(Some(latency)) = client.get_latest_vote_latency_slots(&slots_to_check).await {
-            self.set_vote_latency_slots(latency);
-        }
+        // Note: last_block_rewards and vote_latency_slots are now updated via callbacks
+        // from EpochBasedBlockRewards and SlotBasedMetrics respectively
     }
 
     pub fn set_slot(&self, slot: u64) {
