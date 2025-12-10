@@ -2,6 +2,8 @@
 
 A Prometheus exporter for Solana validators. Supports monitoring multiple validators across mainnet, testnet, and devnet.
 
+![Dashboard](grafana/dashboard.png)
+
 ## Quick Start
 
 ```bash
