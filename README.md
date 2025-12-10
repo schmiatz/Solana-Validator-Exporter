@@ -97,12 +97,3 @@ All metrics include labels: `network` (mainnet/testnet/devnet) and `vote_account
 | 5s | `epoch_block_rewards`, `last_block_rewards` |
 | 30s | All other metrics |
 
-## Systemd Service
-
-See `systemd/` folder for service file and install script:
-
-```bash
-sudo ./systemd/install.sh
-sudo systemctl enable solana-validator-exporter
-sudo systemctl start solana-validator-exporter
-```
