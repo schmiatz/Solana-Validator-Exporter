@@ -359,8 +359,9 @@ impl Metrics {
         let total_epoch_slots = all_leader_slots.len() as u64;
         
         // Then get block production stats (only covers past slots)
+        // Note: get_block_production returns (leader_slots, blocks_produced) per Solana RPC spec
         if let Ok(block_production) = client.get_block_production().await {
-            let (blocks_produced, slots_processed) = block_production;
+            let (slots_processed, blocks_produced) = block_production;
             let blocks_skipped = slots_processed.saturating_sub(blocks_produced);
             let blocks_remaining = total_epoch_slots.saturating_sub(slots_processed as u64);
             
