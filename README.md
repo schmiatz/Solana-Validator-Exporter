@@ -97,3 +97,15 @@ All metrics include labels: `network` (mainnet/testnet/devnet) and `vote_account
 | 5s | `epoch_block_rewards`, `last_block_rewards` |
 | 30s | All other metrics |
 
+## Grafana Dashboard
+
+A pre-built dashboard is included in `grafana/solana.json`.
+
+**To import:**
+
+1. Open Grafana → **Dashboards** → **Import**
+2. Upload `grafana/solana.json` or paste its contents
+3. Select your Prometheus datasource when prompted
+4. Click **Import**
+
+The dashboard includes a `$vote_account` dropdown that auto-populates from your metrics.
