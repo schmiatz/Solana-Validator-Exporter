@@ -54,6 +54,9 @@ pub struct Metrics {
     pub last_block_rewards: Family<MethodLabels, Gauge>,
     pub vote_latency_slots: Family<MethodLabels, Gauge>,
     pub vote_latency_slots_max: Family<MethodLabels, Gauge>,
+    pub vote_credits_earned: Family<MethodLabels, Gauge>,
+    pub vote_credits_max: Family<MethodLabels, Gauge>,
+    pub vote_credits_efficiency: Family<MethodLabels, Gauge>,
 }
 
 impl Metrics {
@@ -78,6 +81,9 @@ impl Metrics {
             last_block_rewards: Family::default(),
             vote_latency_slots: Family::default(),
             vote_latency_slots_max: Family::default(),
+            vote_credits_earned: Family::default(),
+            vote_credits_max: Family::default(),
+            vote_credits_efficiency: Family::default(),
         }
     }
 
@@ -160,6 +166,24 @@ impl Metrics {
             "solana_vote_latency_slots_max",
             "Maximum vote latency in slots over the last 30 seconds",
             self.vote_latency_slots_max.clone(),
+        );
+
+        state.registry.register(
+            "solana_vote_credits_earned",
+            "Vote credits earned in the current epoch",
+            self.vote_credits_earned.clone(),
+        );
+
+        state.registry.register(
+            "solana_vote_credits_max",
+            "Maximum possible vote credits based on blocks produced (blocks × 16)",
+            self.vote_credits_max.clone(),
+        );
+
+        state.registry.register(
+            "solana_vote_credits_efficiency",
+            "Vote credits efficiency ratio (earned / max, multiply by 100 for percentage)",
+            self.vote_credits_efficiency.clone(),
         );
     }
 
@@ -391,6 +415,17 @@ impl Metrics {
                 }
             }
         }
+
+        // Update vote credits
+        // Get credits earned this epoch from vote account
+        if let Ok((credits_earned, _epoch)) = client.get_vote_credits().await {
+            // Get total blocks produced to calculate max possible credits
+            if let Ok(total_blocks) = client.get_total_blocks_produced().await {
+                // Max credits = total blocks × 16 (max credits per block with optimal latency)
+                let max_credits = total_blocks * 16;
+                self.set_vote_credits(credits_earned, max_credits);
+            }
+        }
         
         // Note: last_block_rewards and vote_latency_slots are now updated via callbacks
         // from EpochBasedBlockRewards and SlotBasedMetrics respectively
@@ -594,6 +629,36 @@ impl Metrics {
                 vote_account: self.vote_account.clone(),
             })
             .set(latency as i64);
+    }
+
+    pub fn set_vote_credits(&self, earned: u64, max: u64) {
+        self.vote_credits_earned
+            .get_or_create(&MethodLabels {
+                network: self.network.clone(),
+                vote_account: self.vote_account.clone(),
+            })
+            .set(earned as i64);
+
+        self.vote_credits_max
+            .get_or_create(&MethodLabels {
+                network: self.network.clone(),
+                vote_account: self.vote_account.clone(),
+            })
+            .set(max as i64);
+
+        // Calculate efficiency as a ratio (multiply by 10000 for 4 decimal precision)
+        // This allows Grafana to display as percentage by dividing by 100
+        let efficiency = if max > 0 {
+            ((earned as f64 / max as f64) * 10000.0) as i64
+        } else {
+            0
+        };
+        self.vote_credits_efficiency
+            .get_or_create(&MethodLabels {
+                network: self.network.clone(),
+                vote_account: self.vote_account.clone(),
+            })
+            .set(efficiency);
     }
 }
 

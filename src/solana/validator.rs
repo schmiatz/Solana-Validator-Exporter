@@ -650,6 +650,53 @@ impl SolanaClient {
         Ok((price_float * 1e5) as i64)
     }
 
+    /// Get vote credits earned this epoch for our validator
+    /// Returns (credits_earned_this_epoch, current_epoch)
+    pub async fn get_vote_credits(&self) -> Result<(u64, u64), Box<dyn std::error::Error + Send + Sync>> {
+        let vote_accounts = self
+            .client
+            .get_vote_accounts_with_config(RpcGetVoteAccountsConfig {
+                vote_pubkey: Some(self.vote_account.clone()),
+                keep_unstaked_delinquents: Some(true),
+                ..RpcGetVoteAccountsConfig::default()
+            })
+            .await?;
+        
+        // Find our vote account
+        let our_account = vote_accounts
+            .current
+            .iter()
+            .chain(vote_accounts.delinquent.iter())
+            .find(|account| account.vote_pubkey == self.vote_account)
+            .ok_or("Vote account not found")?;
+        
+        // Get the latest epoch credits entry
+        let (epoch, cumulative, start_of_epoch) = our_account
+            .epoch_credits
+            .last()
+            .ok_or("No epoch credits found")?;
+        
+        let credits_this_epoch = cumulative.saturating_sub(*start_of_epoch);
+        
+        Ok((credits_this_epoch, *epoch))
+    }
+
+    /// Get total blocks produced by all validators in the current epoch
+    /// This is used to calculate max possible vote credits
+    pub async fn get_total_blocks_produced(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+        let blocks = self.client.get_block_production().await?;
+        
+        // Sum all blocks produced by all validators
+        let total_blocks: u64 = blocks
+            .value
+            .by_identity
+            .values()
+            .map(|(_, blocks_produced)| *blocks_produced as u64)
+            .sum();
+        
+        Ok(total_blocks)
+    }
+
     pub async fn get_ms_to_next_slot(
         &self,
         current_slot: u64,

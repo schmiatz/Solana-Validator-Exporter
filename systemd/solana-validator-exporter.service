@@ -46,3 +46,4 @@ Environment=RUST_LOG=info
 WantedBy=multi-user.target
 
 
+
