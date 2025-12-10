@@ -1,95 +1,108 @@
 # Solana Validator Exporter
 
-This is a Prometheus exporter for Solana validators that supports monitoring multiple validators across different networks (mainnet, testnet, devnet).
+A Prometheus exporter for Solana validators. Supports monitoring multiple validators across mainnet, testnet, and devnet.
 
-## Features
+## Quick Start
 
-- **Multi-Network Support**: Monitor validators on mainnet, testnet, and devnet simultaneously
-- **Multi-Validator Support**: Monitor multiple validators per network
-- **Comprehensive Metrics**: Track validator performance, financial metrics, and network statistics
-- **Network Labels**: All metrics include network and vote account labels for easy identification
-
-## Setup
-
-1.  **Create a configuration file.**
-
-    Copy the `config.example.yaml` to `config.yaml` and update the values:
-    ```bash
-    cp config.example.yaml config.yaml
-    ```
-    Then, edit `config.yaml`:
-
-    ### Global Configuration
-    *   `port`: The port the exporter will listen on (e.g., `9090`).
-
-    ### Network RPC URLs (at least one required)
-    *   `rpc_url_mainnet`: The RPC URL for Solana mainnet (e.g., `https://api.mainnet-beta.solana.com`).
-    *   `rpc_url_testnet`: The RPC URL for Solana testnet (optional).
-    *   `rpc_url_devnet`: The RPC URL for Solana devnet (optional).
-
-    ### Validator Accounts (at least one validator configuration required)
-    *   `mainnet_vote_account` & `mainnet_identity_account`: Your mainnet validator's vote and identity account public keys.
-    *   `testnet_vote_account` & `testnet_identity_account`: Your testnet validator's accounts (optional).
-    *   `devnet_vote_account` & `devnet_identity_account`: Your devnet validator's accounts (optional).
-
-    **Note**: The naming convention determines which RPC URL is used (e.g., `mainnet_*` accounts use `rpc_url_mainnet`).
-
-## Running the Exporter
-
-You have two options to run the exporter: direct build or Docker container.
-
-### Option 1: Direct Build
-
-1. **Install Rust** (if not already installed):
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
-
-2. **Build the exporter**:
-   ```bash
-   cargo build --release
-   ```
-
-3. **Run the exporter**:
-   ```bash
-   ./target/release/solana-validator-exporter --config-file config.yaml
-   ```
-
-### Option 2: Docker Container
-
-1. **Build the Docker image**:
-   ```bash
-   docker build -t solana-validator-exporter -f docker/Dockerfile .
-   ```
-
-2. **Run the container**:
-   ```bash
-   docker run -d \
-     --name solana-validator-exporter \
-     -p 9090:9090 \
-     -v $(pwd)/config.yaml:/home/exporter/config.yaml \
-     solana-validator-exporter --config-file /home/exporter/config.yaml
-   ```
-
-## Verifying the Exporter
-
-After running either method, you can verify the exporter is working by accessing the metrics endpoint:
 ```bash
-curl http://localhost:9090/metrics
+# Build
+cargo build --release
+
+# Configure (see config.example.yaml for all options)
+cp config.example.yaml config.yaml
+nano config.yaml
+
+# Run
+./target/release/solana-validator-exporter --config-file config.yaml
 ```
 
-The exporter will expose metrics on the port specified in your configuration file (e.g., `http://localhost:9090/metrics`).
+Metrics available at `http://localhost:9090/metrics`
 
-## Metrics Labels
+## Metrics
 
-All metrics now include the following labels for easy filtering and identification:
-- `network`: The Solana network (mainnet, testnet, or devnet)
-- `vote_account`: The validator's vote account public key
+All metrics include labels: `network` (mainnet/testnet/devnet) and `vote_account`.
 
-Example metric with labels:
+### Slot & Epoch
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_slot` | Current slot | `getSlot` RPC, updated every 100ms |
+| `solana_epoch` | Current epoch number | `getEpochInfo` RPC |
+| `solana_epoch_progress` | Epoch progress (0-10000 = 0-100%) | `slotIndex / slotsInEpoch × 10000` |
+
+### Block Production
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_blocks{block_type="total"}` | Total leader slots for entire epoch | `getLeaderSchedule` RPC |
+| `solana_blocks{block_type="produced"}` | Blocks successfully produced | `getBlockProduction` RPC |
+| `solana_blocks{block_type="skipped"}` | Leader slots where no block was produced | `slots_processed - blocks_produced` |
+| `solana_blocks{block_type="remaining"}` | Future leader slots not yet reached | `total - slots_processed` |
+
+### Vote Credits (Timely Vote Credits - SIMD-0033)
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_vote_credits_earned` | Credits earned in current epoch | `getVoteAccounts` → `epochCredits` |
+| `solana_vote_credits_max` | Max possible credits | `total_blocks_produced × 16` |
+| `solana_vote_credits_efficiency` | Efficiency ratio × 10000 | `earned / max × 10000` (divide by 100 for %) |
+
+**Credit System**: 1-2 slot latency = 16 credits (max), 3+ slots = 16-(latency-2), minimum 1 credit.
+
+### Vote Latency
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_vote_latency_slots` | Latest vote latency in slots | Parsed from vote transactions, updated every 100ms |
+| `solana_vote_latency_slots_max` | Max vote latency in last 30 seconds | Tracks highest latency, resets every 30s |
+
+### Stake
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_stake{stake_type="activated"}` | Active stake (lamports) | `getProgramAccounts` on stake program |
+| `solana_stake{stake_type="activating"}` | Stake becoming active | Filtered by vote account |
+| `solana_stake{stake_type="deactivating"}` | Stake being withdrawn | |
+| `solana_stake{stake_type="locked"}` | Stake with lockup | |
+| `solana_stake{stake_type="*_accounts"}` | Count of stake accounts | |
+
+### Balances
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_identity_balance` | Identity account balance (lamports) | `getBalance` RPC |
+| `solana_vote_account_balance` | Vote account balance (lamports) | `getBalance` RPC |
+
+### Rewards
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_epoch_block_rewards` | Sum of block rewards this epoch (lamports) | Fetched per leader slot, updated every 5s |
+| `solana_last_block_rewards` | Average of last 4 non-zero block rewards | Rolling average |
+| `solana_jito_tips` | Jito MEV tips this epoch (lamports) | Balance of Jito tip distribution PDA |
+
+### Network & Performance
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| `solana_vote_credit_rank` | Validator rank by vote credits | Sorted from `getVoteAccounts` |
+| `solana_ms_to_next_slot` | Milliseconds until next leader slot | `(next_slot - current_slot) × avg_slot_time` |
+| `solana_usd_price` | SOL/USD price × 100000 | Kraken API |
+
+## Update Intervals
+
+| Interval | Metrics |
+|----------|---------|
+| 100ms | `slot`, `vote_latency_slots` |
+| 5s | `epoch_block_rewards`, `last_block_rewards` |
+| 30s | All other metrics |
+
+## Systemd Service
+
+See `systemd/` folder for service file and install script:
+
+```bash
+sudo ./systemd/install.sh
+sudo systemctl enable solana-validator-exporter
+sudo systemctl start solana-validator-exporter
 ```
-solana_slot{network="mainnet",vote_account="YourVoteAccount..."} 123456789
-solana_slot{network="testnet",vote_account="YourTestnetVoteAccount..."} 987654321
-```
-
-This allows you to create separate Grafana dashboards or alerts for different networks and validators.
