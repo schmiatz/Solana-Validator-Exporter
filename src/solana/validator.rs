@@ -7,7 +7,6 @@ use solana_rpc_client_api::config::{
     RpcAccountInfoConfig, RpcBlockConfig, RpcGetVoteAccountsConfig, RpcProgramAccountsConfig,
 };
 use solana_rpc_client_api::filter::{Memcmp, RpcFilterType};
-use solana_rpc_client_api::response::RpcPerfSample;
 use solana_sdk::account_utils::StateMut;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::stake;
@@ -657,33 +656,42 @@ impl SolanaClient {
         leader_slots: Vec<u64>,
     ) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if leader_slots.is_empty() {
-            return Ok::<i64, Box<dyn std::error::Error + Send + Sync>>(-1);
+            return Ok(-1);
         }
-        let samples = self.client.get_recent_performance_samples(Some(60)).await?;
-
-        let (slots, secs) = samples.iter().fold(
-            (0, 0u64),
-            |(slots, secs): (u64, u64),
-             RpcPerfSample {
-                 num_slots,
-                 sample_period_secs,
-                 ..
-             }| {
-                (
-                    slots.saturating_add(*num_slots),
-                    secs.saturating_add((*sample_period_secs).into()),
-                )
-            },
-        );
-        let average_slot_time_ms = secs.saturating_mul(1000).checked_div(slots).unwrap_or(400);
-        let mut next_slot: u64 = 0;
-        for slot in leader_slots.iter() {
-            if *slot > current_slot {
-                next_slot = *slot;
-                break;
+        
+        // Sort leader slots to ensure we find the actual next slot
+        let mut sorted_slots = leader_slots;
+        sorted_slots.sort();
+        
+        // Find the next leader slot (first one greater than current slot)
+        let next_slot = sorted_slots.iter().find(|&&slot| slot > current_slot);
+        
+        match next_slot {
+            Some(&slot) => {
+                // Get average slot time from recent performance samples
+                let samples = self.client.get_recent_performance_samples(Some(60)).await?;
+                let (total_slots, total_secs) = samples.iter().fold(
+                    (0u64, 0u64),
+                    |(slots, secs), sample| {
+                        (
+                            slots.saturating_add(sample.num_slots),
+                            secs.saturating_add(sample.sample_period_secs as u64),
+                        )
+                    },
+                );
+                let average_slot_time_ms = total_secs
+                    .saturating_mul(1000)
+                    .checked_div(total_slots)
+                    .unwrap_or(400); // Default to 400ms if no samples
+                
+                let slots_until_next = slot.saturating_sub(current_slot);
+                Ok((slots_until_next * average_slot_time_ms) as i64)
+            }
+            None => {
+                // No more leader slots in this epoch
+                Ok(-1)
             }
         }
-        Ok(((next_slot - current_slot) * average_slot_time_ms) as i64)
     }
 
     pub async fn get_last_block_rewards(&self) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {

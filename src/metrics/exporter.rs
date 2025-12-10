@@ -351,13 +351,24 @@ impl Metrics {
         }
 
         // Update block production
+        // First get ALL leader slots for the epoch (past + future)
+        let all_leader_slots = match client.get_leader_info().await {
+            Ok(slots) => slots,
+            Err(_) => Vec::new(),
+        };
+        let total_epoch_slots = all_leader_slots.len() as u64;
+        
+        // Then get block production stats (only covers past slots)
         if let Ok(block_production) = client.get_block_production().await {
-            let (blocks_produced, blocks_total) = block_production;
-            let blocks_skipped = blocks_total - blocks_produced;
+            let (blocks_produced, slots_processed) = block_production;
+            let blocks_skipped = slots_processed.saturating_sub(blocks_produced);
+            let blocks_remaining = total_epoch_slots.saturating_sub(slots_processed as u64);
+            
             self.set_block_production(
-                blocks_total as u64,
-                blocks_produced as u64,
-                blocks_skipped as u64,
+                total_epoch_slots,           // Total leader slots for entire epoch
+                blocks_produced as u64,      // Blocks actually produced
+                blocks_skipped as u64,       // Slots skipped (past)
+                blocks_remaining,            // Future leader slots not yet reached
             );
         }
 
@@ -371,10 +382,10 @@ impl Metrics {
             self.set_usd_price(price);
         }
 
-        // Update ms to next slot
-        if let Ok(leader_slots) = client.get_leader_info().await {
+        // Update ms to next slot (reuse leader slots from above if available)
+        if !all_leader_slots.is_empty() {
             if let Ok(current_slot) = client.get_slot().await {
-                if let Ok(ms_to_next) = client.get_ms_to_next_slot(current_slot, leader_slots).await {
+                if let Ok(ms_to_next) = client.get_ms_to_next_slot(current_slot, all_leader_slots).await {
                     self.set_ms_to_next_slot(ms_to_next);
                 }
             }
@@ -487,7 +498,7 @@ impl Metrics {
             .set(balance as i64);
     }
 
-    pub fn set_block_production(&self, total: u64, produced: u64, skipped: u64) {
+    pub fn set_block_production(&self, total: u64, produced: u64, skipped: u64, remaining: u64) {
         self.blocks
             .get_or_create(&BlockLabels {
                 network: self.network.clone(),
@@ -511,6 +522,14 @@ impl Metrics {
                 vote_account: self.vote_account.clone(),
             })
             .set(skipped as i64);
+
+        self.blocks
+            .get_or_create(&BlockLabels {
+                network: self.network.clone(),
+                block_type: "remaining".to_string(),
+                vote_account: self.vote_account.clone(),
+            })
+            .set(remaining as i64);
     }
 
     pub fn set_jito_tips(&self, tips: u64) {
