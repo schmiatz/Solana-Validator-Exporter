@@ -349,16 +349,20 @@ impl Metrics {
     }
 
     async fn update_all_metrics(&self, client: &solana::validator::SolanaClient) {
-        // Update epoch info
-        if let Ok((epoch, epoch_progress)) = client.get_epoch().await {
-            self.set_epoch(epoch);
-            self.set_epoch_progress(epoch_progress);
-            
-            // Update jito tips for current epoch
-            if let Ok(tips) = client.get_jito_tips(epoch).await {
-                self.set_jito_tips(tips);
+        // Fetch epoch info once and reuse for all metrics that need it
+        let epoch_info = match client.get_epoch().await {
+            Ok((epoch, epoch_progress)) => {
+                self.set_epoch(epoch as i64);
+                self.set_epoch_progress(epoch_progress);
+
+                // Update jito tips for current epoch
+                if let Ok(tips) = client.get_jito_tips(epoch as i64).await {
+                    self.set_jito_tips(tips);
+                }
+                Some(epoch)
             }
-        }
+            Err(_) => None,
+        };
 
         // Update stake details
         if let Ok(stake_details) = client.get_stake_details().await {
@@ -374,32 +378,42 @@ impl Metrics {
             self.set_vote_account_balance(balance);
         }
 
-        // Update block production
-        // First get ALL leader slots for the epoch (past + future)
-        let all_leader_slots = match client.get_leader_info().await {
-            Ok(slots) => slots,
-            Err(_) => Vec::new(),
+        // Update block production (single RPC call for both our stats and total blocks)
+        // First get ALL leader slots for the epoch (past + future), reusing epoch from above
+        let all_leader_slots = if let Some(epoch) = epoch_info {
+            match client.get_leader_info(epoch).await {
+                Ok(slots) => slots,
+                Err(_) => Vec::new(),
+            }
+        } else {
+            Vec::new()
         };
         let total_epoch_slots = all_leader_slots.len() as u64;
-        
-        // Then get block production stats (only covers past slots)
-        // Note: get_block_production returns (leader_slots, blocks_produced) per Solana RPC spec
-        if let Ok(block_production) = client.get_block_production().await {
-            let (slots_processed, blocks_produced) = block_production;
+
+        // get_block_production returns (my_leader_slots, my_blocks_produced, total_blocks_all_validators)
+        let total_blocks_produced = if let Ok((slots_processed, blocks_produced, total_blocks)) = client.get_block_production().await {
             let blocks_skipped = slots_processed.saturating_sub(blocks_produced);
             let blocks_remaining = total_epoch_slots.saturating_sub(slots_processed as u64);
-            
+
             self.set_block_production(
                 total_epoch_slots,           // Total leader slots for entire epoch
                 blocks_produced as u64,      // Blocks actually produced
                 blocks_skipped as u64,       // Slots skipped (past)
                 blocks_remaining,            // Future leader slots not yet reached
             );
-        }
+            Some(total_blocks)
+        } else {
+            None
+        };
 
-        // Update vote credit rank
-        if let Ok(rank) = client.get_vote_credit_rank().await {
+        // Update vote credit rank and vote credits (single getVoteAccounts call)
+        if let Ok((rank, credits_earned)) = client.get_vote_account_info().await {
             self.set_vote_credit_rank(rank);
+            if let Some(total_blocks) = total_blocks_produced {
+                // Max credits = total blocks × 16 (max credits per block with optimal latency)
+                let max_credits = total_blocks * 16;
+                self.set_vote_credits(credits_earned, max_credits);
+            }
         }
 
         // Update USD price
@@ -413,17 +427,6 @@ impl Metrics {
                 if let Ok(ms_to_next) = client.get_ms_to_next_slot(current_slot, all_leader_slots).await {
                     self.set_ms_to_next_slot(ms_to_next);
                 }
-            }
-        }
-
-        // Update vote credits
-        // Get credits earned this epoch from vote account
-        if let Ok((credits_earned, _epoch)) = client.get_vote_credits().await {
-            // Get total blocks produced to calculate max possible credits
-            if let Ok(total_blocks) = client.get_total_blocks_produced().await {
-                // Max credits = total blocks × 16 (max credits per block with optimal latency)
-                let max_credits = total_blocks * 16;
-                self.set_vote_credits(credits_earned, max_credits);
             }
         }
         

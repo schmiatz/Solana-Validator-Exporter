@@ -54,6 +54,7 @@ pub struct EpochBasedBlockRewards {
     pub current_epoch: u64,
     pub last_processed_slot: u64,
     pub epoch_schedule: solana_sdk::epoch_schedule::EpochSchedule,
+    pub leader_slots: Vec<u64>,
     pub total_block_rewards: i64,
     pub on_block_rewards_update: Option<Box<dyn Fn(i64) + Send + Sync>>,
     // Track recent non-zero block rewards for averaging
@@ -92,12 +93,11 @@ impl SolanaClient {
         Ok(slot)
     }
 
-    pub async fn get_epoch(&self) -> Result<(i64, i64), Box<dyn std::error::Error + Send + Sync>> {
+    /// Returns (epoch, epoch_progress) from a single getEpochInfo call
+    pub async fn get_epoch(&self) -> Result<(u64, i64), Box<dyn std::error::Error + Send + Sync>> {
         let epoch = self.client.get_epoch_info().await?;
-        Ok((
-            epoch.epoch as i64,
-            ((epoch.slot_index as f64 / epoch.slots_in_epoch as f64) * 10000.0) as i64,
-        ))
+        let progress = ((epoch.slot_index as f64 / epoch.slots_in_epoch as f64) * 10000.0) as i64;
+        Ok((epoch.epoch, progress))
     }
 
     pub async fn get_stake_details(&self) -> Result<StakeState, Box<dyn std::error::Error + Send + Sync>> {
@@ -196,10 +196,9 @@ impl SolanaClient {
             .await?;
         Ok(balance)
     }
-    pub async fn get_leader_info(&self) -> Result<Vec<u64>, Box<dyn std::error::Error + Send + Sync>> {
-        let epoch_info = self.client.get_epoch_info().await?;
+    pub async fn get_leader_info(&self, epoch: u64) -> Result<Vec<u64>, Box<dyn std::error::Error + Send + Sync>> {
         let epoch_schedule = self.client.get_epoch_schedule().await?;
-        let first_slot_in_epoch = epoch_schedule.get_first_slot_in_epoch(epoch_info.epoch);
+        let first_slot_in_epoch = epoch_schedule.get_first_slot_in_epoch(epoch);
         let leader_schedule = self
             .client
             .get_leader_schedule(Some(first_slot_in_epoch))
@@ -220,19 +219,21 @@ impl SolanaClient {
         Ok(leader_slots)
     }
 
-    pub async fn get_block_production(&self) -> Result<(usize, usize), Box<dyn std::error::Error + Send + Sync>> {
+    /// Returns (my_leader_slots, my_blocks_produced, total_blocks_produced_all_validators)
+    pub async fn get_block_production(&self) -> Result<(usize, usize, u64), Box<dyn std::error::Error + Send + Sync>> {
         let blocks = self.client.get_block_production().await?;
-        let my_blocks = blocks
-            .value
-            .by_identity
-            .iter()
-            .filter(|(identity, _)| **identity == self.identity_account)
-            .next();
+
         let mut bp: (usize, usize) = (0, 0);
-        if let Some((_, block_production)) = my_blocks {
-            bp = *block_production;
+        let mut total_blocks: u64 = 0;
+
+        for (identity, &(leader_slots, blocks_produced)) in blocks.value.by_identity.iter() {
+            total_blocks += blocks_produced as u64;
+            if *identity == self.identity_account {
+                bp = (leader_slots, blocks_produced);
+            }
         }
-        Ok(bp)
+
+        Ok((bp.0, bp.1, total_blocks))
     }
 
     pub async fn get_block_rewards(&self, slot: u64) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
@@ -283,7 +284,8 @@ impl SolanaClient {
         Ok(balance)
     }
 
-    pub async fn get_vote_credit_rank(&self) -> Result<u32, Box<dyn std::error::Error + Send + Sync>> {
+    /// Returns (vote_credit_rank, credits_earned_this_epoch) from a single getVoteAccounts call
+    pub async fn get_vote_account_info(&self) -> Result<(u32, u64), Box<dyn std::error::Error + Send + Sync>> {
         let vote_accounts = self
             .client
             .get_vote_accounts_with_config(RpcGetVoteAccountsConfig {
@@ -292,6 +294,8 @@ impl SolanaClient {
                 ..RpcGetVoteAccountsConfig::default()
             })
             .await?;
+
+        // Calculate credits per validator and determine rank
         let mut validator_credits: Vec<_> = vote_accounts
             .current
             .iter()
@@ -308,14 +312,18 @@ impl SolanaClient {
             })
             .collect();
         validator_credits.sort_by(|a, b| b.1.cmp(&a.1));
-        let mut place = 0;
-        for (index, (vote_pubkey, _)) in validator_credits.iter().enumerate() {
+
+        let mut rank = 0u32;
+        let mut our_credits = 0u64;
+        for (index, (vote_pubkey, credits)) in validator_credits.iter().enumerate() {
             if *vote_pubkey == *self.vote_account {
-                place = (index + 1) as u32;
+                rank = (index + 1) as u32;
+                our_credits = *credits;
                 break;
             }
         }
-        Ok(place)
+
+        Ok((rank, our_credits))
     }
 
     pub async fn get_sol_usd_price(&self) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
@@ -325,53 +333,6 @@ impl SolanaClient {
         debug!("Kraken response: {:?}", data);
         let price_float: f64 = data.result.SOLUSD.c[0].parse()?;
         Ok((price_float * 1e5) as i64)
-    }
-
-    /// Get vote credits earned this epoch for our validator
-    /// Returns (credits_earned_this_epoch, current_epoch)
-    pub async fn get_vote_credits(&self) -> Result<(u64, u64), Box<dyn std::error::Error + Send + Sync>> {
-        let vote_accounts = self
-            .client
-            .get_vote_accounts_with_config(RpcGetVoteAccountsConfig {
-                vote_pubkey: Some(self.vote_account.clone()),
-                keep_unstaked_delinquents: Some(true),
-                ..RpcGetVoteAccountsConfig::default()
-            })
-            .await?;
-        
-        // Find our vote account
-        let our_account = vote_accounts
-            .current
-            .iter()
-            .chain(vote_accounts.delinquent.iter())
-            .find(|account| account.vote_pubkey == self.vote_account)
-            .ok_or("Vote account not found")?;
-        
-        // Get the latest epoch credits entry
-        let (epoch, cumulative, start_of_epoch) = our_account
-            .epoch_credits
-            .last()
-            .ok_or("No epoch credits found")?;
-        
-        let credits_this_epoch = cumulative.saturating_sub(*start_of_epoch);
-        
-        Ok((credits_this_epoch, *epoch))
-    }
-
-    /// Get total blocks produced by all validators in the current epoch
-    /// This is used to calculate max possible vote credits
-    pub async fn get_total_blocks_produced(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-        let blocks = self.client.get_block_production().await?;
-        
-        // Sum all blocks produced by all validators
-        let total_blocks: u64 = blocks
-            .value
-            .by_identity
-            .values()
-            .map(|(_, blocks_produced)| *blocks_produced as u64)
-            .sum();
-        
-        Ok(total_blocks)
     }
 
     pub async fn get_ms_to_next_slot(
@@ -670,22 +631,31 @@ impl EpochBasedBlockRewards {
         let current_slot = client.get_slot().await?;
         let current_epoch = epoch_schedule.get_epoch(current_slot);
         let first_slot = epoch_schedule.get_first_slot_in_epoch(current_epoch);
-        
-        log::info!("Initializing epoch-based block rewards for validator {} in epoch {} (slots {}-{})", 
-                   client.identity_account, current_epoch, first_slot, 
-                   epoch_schedule.get_last_slot_in_epoch(current_epoch));
-        
+
+        // Cache leader schedule for the current epoch
+        let leader_schedule = client.client.get_leader_schedule(Some(first_slot)).await?
+            .ok_or("Failed to get initial leader schedule")?;
+        let leader_slots: Vec<u64> = leader_schedule
+            .get(&client.identity_account)
+            .map(|slots| slots.iter().map(|&slot| slot as u64 + first_slot).collect())
+            .unwrap_or_default();
+
+        log::info!("Initializing epoch-based block rewards for validator {} in epoch {} (slots {}-{}, {} leader slots)",
+                   client.identity_account, current_epoch, first_slot,
+                   epoch_schedule.get_last_slot_in_epoch(current_epoch), leader_slots.len());
+
         let rewards = Self {
             client,
             current_epoch,
             last_processed_slot: first_slot - 1, // Start from before first slot to process all
             epoch_schedule,
+            leader_slots,
             total_block_rewards: 0,
             on_block_rewards_update: None,
             recent_block_rewards: Vec::new(),
             on_last_block_rewards_update: None,
         };
-        
+
         Ok(rewards)
     }
 
@@ -707,47 +677,33 @@ impl EpochBasedBlockRewards {
     
     pub async fn process_epoch_block_rewards(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         log::debug!("Starting process_epoch_block_rewards for validator {}", self.client.identity_account);
-        
+
         let current_slot = self.client.get_slot().await?;
         let current_epoch = self.epoch_schedule.get_epoch(current_slot);
-        
+
         log::debug!("Current slot: {}, current epoch: {}", current_slot, current_epoch);
-        
+
         // Check for epoch change
         if current_epoch != self.current_epoch {
             self.handle_epoch_change(current_epoch).await?;
         }
-        
-        // Get leader slots for current epoch
-        let first_slot = self.epoch_schedule.get_first_slot_in_epoch(current_epoch);
+
         let last_slot = self.epoch_schedule.get_last_slot_in_epoch(current_epoch);
-        
-        // Get leader schedule for this epoch
-        let leader_schedule = self.client.client.get_leader_schedule(Some(first_slot)).await?
-            .ok_or("Failed to get leader schedule")?;
-        
-        log::debug!("Got leader schedule for epoch {}", current_epoch);
-        
-        // Extract leader slots for our validator
-        let leader_slots: Vec<u64> = leader_schedule
-            .get(&self.client.identity_account)
-            .map(|slots| slots.iter().map(|&slot| slot as u64 + first_slot).collect())
-            .unwrap_or_default();
-        
-        log::debug!("Processing epoch {} block rewards: {} leader slots, last processed: {}, current: {}", 
-                   current_epoch, leader_slots.len(), self.last_processed_slot, current_slot);
+
+        log::debug!("Processing epoch {} block rewards: {} leader slots, last processed: {}, current: {}",
+                   current_epoch, self.leader_slots.len(), self.last_processed_slot, current_slot);
         
         // Process new leader slots incrementally
         let mut new_rewards = 0i64;
         let mut processed_count = 0;
         
-        log::debug!("Starting to process {} leader slots", leader_slots.len());
-        
+        log::debug!("Starting to process {} leader slots", self.leader_slots.len());
+
         // Process only a small number of leader slots at a time to avoid taking too long
         let max_slots_to_process = 10; // Process max 10 slots per cycle
         let mut slots_processed = 0;
-        
-        for &leader_slot in &leader_slots {
+
+        for &leader_slot in &self.leader_slots.clone() {
             // Only process slots we haven't processed yet and that are not in the future
             if leader_slot > self.last_processed_slot && leader_slot <= current_slot {
                 log::debug!("Processing leader slot {}", leader_slot);
@@ -829,23 +785,32 @@ impl EpochBasedBlockRewards {
     
     pub async fn handle_epoch_change(&mut self, new_epoch: u64) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         log::info!("Epoch changed from {} to {} for block rewards tracking", self.current_epoch, new_epoch);
-        
+
         // Reset for new epoch
         self.current_epoch = new_epoch;
         self.total_block_rewards = 0;
         self.recent_block_rewards.clear();
-        
+
         let first_slot = self.epoch_schedule.get_first_slot_in_epoch(new_epoch);
         self.last_processed_slot = first_slot - 1; // Start from before first slot
-        
-        log::info!("Reset block rewards tracking for epoch {} (slots {}-{})", 
-                  new_epoch, first_slot, self.epoch_schedule.get_last_slot_in_epoch(new_epoch));
-        
+
+        // Refresh leader schedule cache for new epoch
+        let leader_schedule = self.client.client.get_leader_schedule(Some(first_slot)).await?
+            .ok_or("Failed to get leader schedule for new epoch")?;
+        self.leader_slots = leader_schedule
+            .get(&self.client.identity_account)
+            .map(|slots| slots.iter().map(|&slot| slot as u64 + first_slot).collect())
+            .unwrap_or_default();
+
+        log::info!("Reset block rewards tracking for epoch {} (slots {}-{}, {} leader slots)",
+                  new_epoch, first_slot, self.epoch_schedule.get_last_slot_in_epoch(new_epoch),
+                  self.leader_slots.len());
+
         // Call callback with reset value
         if let Some(on_update) = &self.on_block_rewards_update {
             on_update(0);
         }
-        
+
         Ok(())
     }
     
