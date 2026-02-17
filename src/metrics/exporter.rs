@@ -431,15 +431,6 @@ impl Metrics {
         // from EpochBasedBlockRewards and SlotBasedMetrics respectively
     }
 
-    pub fn set_slot(&self, slot: u64) {
-        self.slot
-            .get_or_create(&MethodLabels {
-                network: self.network.clone(),
-                vote_account: self.vote_account.clone(),
-            })
-            .set(slot as i64);
-    }
-
     pub fn set_epoch(&self, epoch: i64) {
         self.epoch
             .get_or_create(&MethodLabels {
@@ -595,15 +586,6 @@ impl Metrics {
             .set(price);
     }
 
-    pub fn set_epoch_block_rewards(&self, block_rewards: i64) {
-        self.epoch_block_rewards
-            .get_or_create(&MethodLabels {
-                network: self.network.clone(),
-                vote_account: self.vote_account.clone(),
-            })
-            .set(block_rewards);
-    }
-
     pub fn set_ms_to_next_slot(&self, ms_to_next_slot: i64) {
         self.ms_to_next_slot
             .get_or_create(&MethodLabels {
@@ -611,24 +593,6 @@ impl Metrics {
                 vote_account: self.vote_account.clone(),
             })
             .set(ms_to_next_slot);
-    }
-
-    pub fn set_last_block_rewards(&self, last_block_rewards: i64) {
-        self.last_block_rewards
-            .get_or_create(&MethodLabels {
-                network: self.network.clone(),
-                vote_account: self.vote_account.clone(),
-            })
-            .set(last_block_rewards);
-    }
-
-    pub fn set_vote_latency_slots(&self, latency: u64) {
-        self.vote_latency_slots
-            .get_or_create(&MethodLabels {
-                network: self.network.clone(),
-                vote_account: self.vote_account.clone(),
-            })
-            .set(latency as i64);
     }
 
     pub fn set_vote_credits(&self, earned: u64, max: u64) {
